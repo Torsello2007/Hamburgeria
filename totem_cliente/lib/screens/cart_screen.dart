@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../models/prodotto.dart';
 import 'menu_screen.dart'; // Per accedere alla lista 'carrello'
 
 class CartScreen extends StatefulWidget {

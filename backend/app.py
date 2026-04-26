@@ -6,25 +6,27 @@ app = Flask(__name__)
 CORS(app)
 db = DatabaseWrapper()
 
-@app.route('/prodotti', methods=['GET'])
-def list_prodotti():
+@app.route('/prodotti', methods=['GET', 'POST'])
+def handle_prodotti():
+    if request.method == 'POST':
+        db.add_prodotto(request.json)
+        return jsonify({"status": "ok"})
     return jsonify(db.get_prodotti())
 
-# AGGIORNATO: Ora accetta sia GET (per vedere) che POST (per creare)
+@app.route('/prodotti/<int:id>', methods=['DELETE'])
+def del_prodotto(id):
+    db.delete_prodotto(id)
+    return jsonify({"status": "deleted"})
+
 @app.route('/ordini', methods=['GET', 'POST'])
 def handle_ordini():
-    if request.method == 'GET':
-        return jsonify(db.get_ordini())
-    
     if request.method == 'POST':
-        data = request.json
-        res = db.crea_ordine(data['totale'], data['prodotti'])
-        return jsonify({"status": "success", "id": res})
+        return jsonify(db.crea_ordine(request.json['totale'], request.json['prodotti']))
+    return jsonify(db.get_ordini())
 
-# Rotta per cambiare lo stato (richiesta da Angular)
 @app.route('/ordini/<int:id>', methods=['PUT'])
-def update_ordine(id):
-    # Logica opzionale se vuoi gestire il cambio stato nel DB
+def edit_ordine(id):
+    db.update_ordine(id, request.json['stato'])
     return jsonify({"status": "updated"})
 
 if __name__ == '__main__':
