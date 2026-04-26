@@ -16,7 +16,7 @@ class MenuScreen extends StatefulWidget {
 class _MenuScreenState extends State<MenuScreen> {
   Future<List<Prodotto>> fetchProdotti() async {
     // Nota: usiamo l'IP locale di codespaces o 127.0.0.1
-    final response = await http.get(Uri.parse('http://127.0.0.1:5000/prodotti'));
+    final response = await http.get(Uri.parse('https://super-spork-x5r67qg966g7frg4-5000.app.github.dev/prodotti'));
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Prodotto.fromJson(data)).toList();
