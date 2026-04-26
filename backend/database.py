@@ -12,7 +12,7 @@ class DatabaseWrapper:
             'database': os.getenv('DB_NAME'), 'cursorclass': pymysql.cursors.DictCursor
         }
 
-    def _execute(self, sql, params=None, commit=False):
+    def _exec(self, sql, params=None, commit=False):
         conn = pymysql.connect(**self.config)
         try:
             with conn.cursor() as cur:
@@ -21,26 +21,17 @@ class DatabaseWrapper:
                 return cur.fetchall()
         finally: conn.close()
 
-    def get_prodotti(self): return self._execute("SELECT * FROM prodotti")
-    
-    def add_prodotto(self, p): 
-        sql = "INSERT INTO prodotti (nome, prezzo, categoria, immagine) VALUES (%s, %s, %s, %s)"
-        return self._execute(sql, (p['nome'], p['prezzo'], p['categoria'], p['immagine']), True)
-
-    def delete_prodotto(self, id): 
-        return self._execute("DELETE FROM prodotti WHERE id=%s", (id,), True)
-
-    def get_ordini(self): return self._execute("SELECT * FROM ordini ORDER BY id DESC")
-    
-    def update_ordine(self, id, stato): 
-        return self._execute("UPDATE ordini SET stato=%s WHERE id=%s", (stato, id), True)
-
-    def crea_ordine(self, totale, prodotti):
+    def get_prodotti(self): return self._exec("SELECT * FROM prodotti")
+    def add_prodotto(self, p): return self._exec("INSERT INTO prodotti (nome, prezzo, categoria, immagine) VALUES (%s, %s, %s, %s)", (p['nome'], p['prezzo'], p['categoria'], p['immagine']), True)
+    def update_prodotto(self, id, p): return self._exec("UPDATE prodotti SET nome=%s, prezzo=%s WHERE id=%s", (p['nome'], p['prezzo'], id), True)
+    def del_prodotto(self, id): return self._exec("DELETE FROM prodotti WHERE id=%s", (id,), True)
+    def get_ordini(self): return self._exec("SELECT * FROM ordini ORDER BY id DESC")
+    def update_ordine(self, id, s): return self._exec("UPDATE ordini SET stato=%s WHERE id=%s", (s, id), True)
+    def crea_ordine(self, tot, prod):
         conn = pymysql.connect(**self.config)
         with conn.cursor() as cur:
-            cur.execute("INSERT INTO ordini (totale, stato) VALUES (%s, 'in attesa')", (totale,))
+            cur.execute("INSERT INTO ordini (totale, stato) VALUES (%s, 'in attesa')", (tot,))
             oid = conn.lastrowid
-            for p in prodotti:
-                cur.execute("INSERT INTO dettagli_ordine (id_ordine, id_prodotto, quantita) VALUES (%s, %s, %s)", (oid, p['id'], p['quantita']))
+            for p in prod: cur.execute("INSERT INTO dettagli_ordine (id_ordine, id_prodotto, quantita) VALUES (%s, %s, %s)", (oid, p['id'], p['quantita']))
             conn.commit()
         return oid
