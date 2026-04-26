@@ -24,11 +24,21 @@ class DatabaseWrapper:
         finally:
             conn.close()
 
+    # QUESTA È LA FUNZIONE CHE MANCAVA!
+    def get_ordini(self):
+        conn = pymysql.connect(**self.config)
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM ordini ORDER BY id DESC")
+                return cursor.fetchall()
+        finally:
+            conn.close()
+
     def crea_ordine(self, totale, prodotti):
         conn = pymysql.connect(**self.config)
         try:
             with conn.cursor() as cursor:
-                cursor.execute("INSERT INTO ordini (totale) VALUES (%s)", (totale,))
+                cursor.execute("INSERT INTO ordini (totale, stato) VALUES (%s, 'in attesa')", (totale,))
                 id_ordine = cursor.lastrowid
                 for p in prodotti:
                     cursor.execute("INSERT INTO dettagli_ordine (id_ordine, id_prodotto, quantita) VALUES (%s, %s, %s)", 
