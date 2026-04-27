@@ -1,10 +1,17 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 from database import DatabaseWrapper
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 db = DatabaseWrapper()
+
+@app.after_request
+def after(resp):
+    resp.headers.add('Access-Control-Allow-Origin', '*')
+    resp.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    resp.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return resp
 
 @app.route('/prodotti', methods=['GET', 'POST'])
 def handle_p():
@@ -14,11 +21,14 @@ def handle_p():
 @app.route('/prodotti/<int:id>', methods=['PUT', 'DELETE'])
 def edit_p(id):
     if request.method == 'PUT': return jsonify(db.update_prodotto(id, request.json))
-    return jsonify(db.del_prodotto(id))
+    return jsonify(db.delete_prodotto(id))
 
-@app.route('/ordini', methods=['GET', 'POST'])
+@app.route('/ordini', methods=['GET', 'POST', 'OPTIONS'])
 def handle_o():
-    if request.method == 'POST': return jsonify(db.crea_ordine(request.json['totale'], request.json['prodotti']))
+    if request.method == 'OPTIONS': return make_response("", 200)
+    if request.method == 'POST':
+        res = db.crea_ordine(request.json['totale'], request.json['prodotti'])
+        return jsonify({"status": "success", "id": res})
     return jsonify(db.get_ordini())
 
 @app.route('/ordini/<int:id>', methods=['PUT'])
